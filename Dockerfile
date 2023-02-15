@@ -10,7 +10,7 @@ RUN (unzip -p /tmp/Xilinx_ISE_14.7_Win10_14.7_VM_0213_1.zip ova/14.7_VM.ova | ta
     rm -rf /tmp/Xilinx_ISE_14.7_Win10_14.7_VM_0213_1.zip ova/14.7_VM.ova && \
     (virt-copy-out -a 14.7_VM-disk001.vmdk /opt/Xilinx /opt) && \
     (virt-copy-out -a 14.7_VM-disk001.vmdk /home/ise/.Xilinx/Xilinx.lic /opt/Xilinx) && \
-    rm 14.7_VM-disk001.vmdk
+    rm 14.7_VM-disk001.vmdk 
 
 FROM ubuntu:20.04
 LABEL maintainer="Victor Muñoz <victor@2c-b.cl>"
@@ -18,11 +18,17 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 COPY --from=builder /opt/Xilinx /opt/Xilinx
 
+# workaround for coregen from https://wiki.archlinux.org/title/Xilinx_ISE_WebPACK
+RUN mv /opt/Xilinx/14.7/ISE_DS/ISE/java/lin64/jre/bin/java /opt/Xilinx/14.7/ISE_DS/ISE/java/lin64/jre/bin/java.old && \
+    ln -s /opt/Xilinx/14.7/ISE_DS/ISE/java6/lin64/jre/bin/java /opt/Xilinx/14.7/ISE_DS/ISE/java/lin64/jre/bin/java
+
+
 RUN apt update && apt -y install \
     libusb-dev fxload \ 
     libsm6 libglib2.0-0 libxi6 libxrender1 libxrandr2 \
     libxtst6 \
-    libfreetype6 libfontconfig1 gcc && \
+    libfreetype6 libfontconfig1 gcc \
+    libncurses5-dev libncursesw5-dev libtinfo5 libncurses5 && \
     rm -rf /var/lib/apt/lists/* && \
     cp /opt/Xilinx/14.7/ISE_DS/ISE/bin/lin64/xusbdfwu.hex /usr/share/ && \
     ln -s libusb-1.0.so.0 /opt/Xilinx/14.7/ISE_DS/ISE/lib/lin64/libusb.so
